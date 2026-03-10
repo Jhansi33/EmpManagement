@@ -1,0 +1,14 @@
+<!DOCTYPE html>
+<html xmlns:th="https://www.thymeleaf.org">
+	<head>
+		<title>Dashboard</title>
+	</head>
+	<body>
+		<h1>Welcome to Emp Dashboard Page</h1>
+		
+		<h2><b>Name:</b><span th:text="${emp.name}"></span></h2>
+		<h2><b>Email:</b><span th:text="${emp.email}"></span></h2>
+		<br><br>
+		<a href="/logout">Logout</a>
+		</body>
+</html>
