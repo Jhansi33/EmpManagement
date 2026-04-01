@@ -1,79 +1,46 @@
 package com.emp.controller;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Controller;
-import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RestController;
 
 import com.emp.model.Emp;
 import com.emp.service.EmpService;
 
-import jakarta.servlet.http.HttpSession;
-import jakarta.websocket.Session;
+import java.util.Map;
 
-@Controller
+@CrossOrigin(origins = "*") // Allows the new frontend on any port/origin to fetch data
+@RestController
 public class EmpController {
 
 	@Autowired
 	private EmpService service;
 	
-	//loading login page
-	@GetMapping("/")
-	public String loginPage() {
-		return "login";
-	}
-	
-	//load registration page
-	@GetMapping("/register")
-	public String registerPage(Model model) {
-		model.addAttribute("emp",new Emp());
-		return "register";
-	}
-	//save registration data4
+	//save registration data
 	@PostMapping("/register")
-	public String registerEmp(@ModelAttribute Emp emp) {
+	public ResponseEntity<?> registerEmp(@RequestBody Emp emp) {
 		service.register(emp);
-		return"redirect:/";
+		return ResponseEntity.ok("Registered Successfully");
 	}
 	
 	//login Logic
 	@PostMapping("/login")
-	public String login(@RequestParam String email,
-			@RequestParam String password,
-			HttpSession session,
-			Model model) {
+	public ResponseEntity<?> login(@RequestBody Map<String, String> payload) {
+		String email = payload.get("email");
+		String password = payload.get("password");
+		
 		//validate emp from db
-		Emp e=service.login(email, password);
+		Emp e = service.login(email, password);
 		
-		if(e!=null) {
-			//create session
-			session.setAttribute("emplogged", e);
-			return"redirect:/dashboard";
-		}else {
+		if(e != null) {
+			return ResponseEntity.ok(e); // Return user info as JSON
+		} else {
 			//login failed
-			model.addAttribute("error","invalid Email or Password");
-			return "login";
+			return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid Email or Password");
 		}
-	}
-	//dashboard with session check
-	@GetMapping("/dashboard")
-	public String dashboard(HttpSession session,Model model) {
-		Emp e=(Emp)session.getAttribute("emplogged");
-		
-		//if session expired or not logged in
-		if(e==null) {
-			return"redirect:/";
-		}
-		model.addAttribute("emp",e);
-		return"dashboard";
-	}
-	//logout logic
-	@GetMapping("/logout")
-	public String logout(HttpSession session) {
-		session.invalidate();
-		return "redirect:/";
 	}
 }
